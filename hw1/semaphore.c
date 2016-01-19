@@ -34,7 +34,6 @@ void producer(void)
         sem_post(&mutex);
         sem_post(&full);
     }
-    pthread_exit(NULL);
 }
 
 void consumer(void)
@@ -50,7 +49,6 @@ void consumer(void)
         sem_post(&mutex);
         sem_post(&empty);
     }
-    pthread_exit(NULL);
 }
 
 int produce_item()
@@ -83,12 +81,17 @@ int main()
     sem_init(&empty, 0, N);
 
     pthread_t threads[MAX_THREADS];
-    int rc;
     long t;
     t = 1;
-    rc = pthread_create(&threads[0], NULL, (void *) &producer, (void *) t);
+    pthread_create(&threads[0], NULL, (void *) &producer, (void *) t);
     t = 2;
-    rc = pthread_create(&threads[1], NULL, (void *) &consumer, (void *) t);
+    pthread_create(&threads[1], NULL, (void *) &consumer, (void *) t);
+    pthread_join(threads[0], NULL);
+    pthread_join(threads[1], NULL);
 
-    pthread_exit(NULL);
+    sem_destroy(&mutex);
+    sem_destroy(&full);
+    sem_destroy(&empty);
+
+    return 0;
 }
