@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 #define N 100
 #define TRUE 1
 #define FALSE 0
