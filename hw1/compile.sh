@@ -5,4 +5,5 @@ if [ $# != 1 ]
 	else
 		gcc -c $1.c
 		gcc -o $1 $1.o
+		rm -f $1.o
 fi
