@@ -97,33 +97,33 @@ void producer(void *t)
 	int i = 0;
 	while(TRUE)
 	{
-		sem_wait(&empty);
+		printf("current items %d", current_items);
 		if (current_items == max_items)
 		{
 			printf("Producer Thread %d is finished\n", (int)t);
-			sem_post(&empty);
-//			free(t);
 			return;
 		}
-//		sem_wait(&empty);
-		sem_wait(&mutex);
-		//printf("entering prod\n");
-		for (i = 0; i < shared_buffers; i++)
+		if (sem_trywait(&empty) == 0)
 		{
-			if (buffer_matrix[i] < 1023)
+			sem_wait(&mutex);
+			printf("entering prod\n");
+			for (i = 0; i < shared_buffers; i++)
 			{
-				buffer_matrix[i]++;
-				current_items++;
-				break;
+				if (buffer_matrix[i] < 1023)
+				{
+					buffer_matrix[i]++;
+					current_items++;
+					break;
+				}
 			}
+			sem_post(&mutex);
+			sem_post(&full);
 		}
-		sem_post(&mutex);
-		sem_post(&full);
-		if (current_items == max_items)
-		{
-			printf("shits broke yo\n");
-			return;
-		}
+//		if (current_items == max_items)
+//		{
+//			printf("shits broke yo\n");
+//			return;
+//		}
 	}
 }
 
@@ -131,33 +131,30 @@ void producer(void *t)
 void consumer(void *t)
 {
 	int i = 0;
-	int all_consumed = TRUE;
 	while(TRUE)
         {
-		sem_wait(&full);
-		int current_count;
-		sem_getvalue(&full, &current_count);
-		printf("%d\n", current_count);
-		if (current_count == max_items)
+//		int count;
+//		sem_getvalue(&full, &count);
+//		printf("%d\n", count);
+		if (current_items == max_items)
 		{
-			printf("Consumer Thread %d is finished\n", (int)t);
-//			free(t);
+			printf("Consumer Thread %d is finished\n", (int) t);
 			return;
 		}
-		all_consumed = TRUE;
-//		sem_wait(&full);
-//		sem_wait(&mutex);
-//		printf("entering con\n");
-		for (i = 0; i < shared_buffers; i++)
+		if (sem_trywait(&full) == 0)
 		{
-			if (buffer_matrix[i] > 1)
+			sem_wait(&mutex);
+//			printf("entering con\n");
+			for (i = 0; i < shared_buffers; i++)
 			{
-				all_consumed = FALSE;
-				buffer_matrix[i]--;
-				break;
+				if (buffer_matrix[i] > 1)
+				{
+					buffer_matrix[i]--;
+					break;
+				}
 			}
+			sem_post(&mutex);
+			sem_post(&empty);
 		}
-		sem_post(&mutex);
-		sem_post(&empty);
 	}
 }
