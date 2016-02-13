@@ -1,7 +1,7 @@
-prodcon: prodcon.o
-	gcc $(CFLAGS) -o prodcon prodcon.o -lpthread
-prodcon.o: prodcon.c
-	gcc $(CFLAGS) -c prodcon.c -lpthread
+hw2_1a: hw2_1a.o
+	gcc $(CFLAGS) -o hw2_1a hw2_1a.o -lpthread
+hw2_1a.o: hw2_1a.c
+	gcc $(CFLAGS) -c hw2_1a.c -lpthread
 clean: 
-	rm -f *.o prodcon
+	rm -f *.o hw2_1a
 
