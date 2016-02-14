@@ -95,6 +95,7 @@ int main(int argc, char **argv)
 void producer(void *t)
 {
 //	int current_count;
+	int i;
 	while (TRUE)
 	{
 //		sem_getvalue(&full, &current_count);
@@ -106,9 +107,26 @@ void producer(void *t)
 		if (sem_trywait(&mutex) == 0)
 		{
 //			printf("producing\n");
-			current_items++;
-			sem_post(&full);
-			sem_post(&mutex);
+			int all_full = TRUE;
+			for (i = 0; i < shared_buffers; i++)
+			{
+				if (buffer_matrix[i] < 1023)
+				{
+					buffer_matrix[i]++;
+					current_items++;
+					all_full = FALSE;
+					break;
+				}
+			}
+			if (all_full)
+			{
+				sem_post(&mutex);
+			}
+			else
+			{
+				sem_post(&full);
+				sem_post(&mutex);
+			}
 		}
 	}
 }
@@ -117,6 +135,7 @@ void consumer(void *t)
 {
 	int current_count;
 	int current_created;
+	int i;
 	while (TRUE)
 	{
 		sem_getvalue(&full, &current_created);
@@ -132,6 +151,14 @@ void consumer(void *t)
 			if (sem_trywait(&mutex) == 0)
 			{
 //				printf("consuming\n");
+				for (i = 0; i < shared_buffers; i++)
+				{
+					if (buffer_matrix[i] > 1)
+					{
+						buffer_matrix[i]--;
+						break;
+					}
+				}
 				sem_post(&empty);
 				sem_post(&mutex);
 			}
