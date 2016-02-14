@@ -27,7 +27,8 @@ int main(int argc, char **argv)
 
 	if (argc < 5)
 	{
-		printf("Not enough arguments\ncorrect syntax: ./prodcon [# producer threads] [# consumer threads] [# shared buffers] [# items]\n");
+		printf("Not enough arguments\ncorrect syntax: ./prodcon [# producer threads] "
+			"[# consumer threads] [# shared buffers] [# items]\n");
 		return 0;
 	}
 
@@ -53,7 +54,8 @@ int main(int argc, char **argv)
         sem_init(&full, 0, 0);
         sem_init(&empty, 0, 0);//max_items);
 
-	printf("creating %d producer threads, %d consumer threads, %d shared buffers, %d items to produce\n", producer_threads, consumer_threads
+	printf("creating %d producer threads, %d consumer threads, %d shared "
+		"buffers, %d items to produce\n", producer_threads, consumer_threads
 		, shared_buffers, max_items);
 
 
@@ -108,6 +110,11 @@ void producer(void *t)
 		if (sem_trywait(&mutex) == 0)
 		{
 //			printf("producing\n");
+			if (current_items >= max_items)
+			{
+				sem_post(&mutex);
+				return;
+			}
 			int all_full = TRUE;
 			for (i = 0; i < shared_buffers; i++)
 			{
@@ -130,10 +137,6 @@ void producer(void *t)
 				sem_post(&full);
 				sem_post(&mutex);
 			}
-		}
-		else
-		{
-			printf("consumer thread %d is yeilding\n", (int) t);
 		}
 	}
 }
@@ -173,6 +176,10 @@ void consumer(void *t)
 			{
 				sem_post(&full);
 			}
+		}
+		else
+		{
+			printf("consumer thread %d is yeilding\n", (int) t);
 		}
 	}
 }
