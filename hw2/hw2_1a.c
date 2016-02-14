@@ -15,7 +15,8 @@ int current_items = 0;
 int* buffer_matrix;
 int shared_buffers;
 
-sem_t mutex;
+sem_t prod_mutex;
+sem_t con_mutex;
 sem_t empty;
 sem_t full;
 
@@ -50,9 +51,10 @@ int main(int argc, char **argv)
 	arg = *(argv + 4);
 	max_items = atoi(arg);
 
-	sem_init(&mutex, 0, 1);
-        sem_init(&full, 0, 0);
-        sem_init(&empty, 0, 0);//max_items);
+	sem_init(&prod_mutex, 0, 1);
+	sem_init(&con_mutex, 0, 1);
+    sem_init(&full, 0, 0);
+    sem_init(&empty, 0, 0);//max_items);
 
 	printf("creating %d producer threads, %d consumer threads, %d shared "
 		"buffers, %d items to produce\n", producer_threads, consumer_threads
@@ -88,7 +90,8 @@ int main(int argc, char **argv)
 
 //	free(t);
 	free(buffer_matrix);
-	sem_destroy(&mutex);
+	sem_destroy(&prod_mutex);
+	sem_destroy(&con_mutex);
 	sem_destroy(&full);
 	sem_destroy(&empty);
 
@@ -107,12 +110,12 @@ void producer(void *t)
 			printf("producer thread %d has finished\n%d produced\n", (int) t, current_items);
 			return;
 		}
-		if (sem_trywait(&mutex) == 0)
+		if (sem_trywait(&prod_mutex) == 0)
 		{
 //			printf("producing\n");
 			if (current_items >= max_items)
 			{
-				sem_post(&mutex);
+				sem_post(&prod_mutex);
 				return;
 			}
 			int all_full = TRUE;
@@ -130,12 +133,12 @@ void producer(void *t)
 				print_buffer_status();
 			if (all_full)
 			{
-				sem_post(&mutex);
+				sem_post(&prod_mutex);
 			}
 			else
 			{
 				sem_post(&full);
-				sem_post(&mutex);
+				sem_post(&prod_mutex);
 			}
 		}
 	}
@@ -158,7 +161,7 @@ void consumer(void *t)
 		}
 		if (sem_trywait(&full) == 0)
 		{
-			if (sem_trywait(&mutex) == 0)
+			if (sem_trywait(&con_mutex) == 0)
 			{
 //				printf("consuming\n");
 				for (i = 0; i < shared_buffers; i++)
@@ -170,7 +173,7 @@ void consumer(void *t)
 					}
 				}
 				sem_post(&empty);
-				sem_post(&mutex);
+				sem_post(&con_mutex);
 			}
 			else
 			{
