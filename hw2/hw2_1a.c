@@ -94,18 +94,19 @@ int main(int argc, char **argv)
 
 void producer(void *t)
 {
-	int current_count;
+//	int current_count;
 	while (TRUE)
 	{
-		sem_getvalue(&full, &current_count);
-		if (current_count >= max_items)
+//		sem_getvalue(&full, &current_count);
+		if (current_items >= max_items)
 		{
-			printf("exiting producer thread %d\n", (int) t);
+			printf("exiting producer thread %d\n%d produced\n", (int) t, current_items);
 			return;
 		}
 		if (sem_trywait(&mutex) == 0)
 		{
 //			printf("producing\n");
+			current_items++;
 			sem_post(&full);
 			sem_post(&mutex);
 		}
@@ -115,20 +116,29 @@ void producer(void *t)
 void consumer(void *t)
 {
 	int current_count;
+	int current_created;
 	while (TRUE)
 	{
+		sem_getvalue(&full, &current_created);
 		sem_getvalue(&empty, &current_count);
 //		printf("empty val: %d\n", current_count);
-		if (current_count >= max_items)
+		if (current_count >= max_items && current_created == 0)
 		{
-			printf("exiting consumer thread %d\n", (int) t);
+			printf("exiting consumer thread %d\n%d consumed\n", (int) t, current_count);
 			return;
 		}
-		if (sem_trywait(&mutex) == 0)
+		if (sem_trywait(&full) == 0)
 		{
-			printf("consuming\n");
-			sem_post(&empty);
-			sem_post(&mutex);
+			if (sem_trywait(&mutex) == 0)
+			{
+//				printf("consuming\n");
+				sem_post(&empty);
+				sem_post(&mutex);
+			}
+			else
+			{
+				sem_post(&full);
+			}
 		}
 	}
 }
