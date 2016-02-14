@@ -8,6 +8,7 @@
 
 void producer(void *t);
 void consumer(void *t);
+void print_buffer_status();
 
 int max_items = 0;
 int current_items = 0;
@@ -101,7 +102,7 @@ void producer(void *t)
 //		sem_getvalue(&full, &current_count);
 		if (current_items >= max_items)
 		{
-			printf("exiting producer thread %d\n%d produced\n", (int) t, current_items);
+			printf("producer thread %d has finished\n%d produced\n", (int) t, current_items);
 			return;
 		}
 		if (sem_trywait(&mutex) == 0)
@@ -110,7 +111,7 @@ void producer(void *t)
 			int all_full = TRUE;
 			for (i = 0; i < shared_buffers; i++)
 			{
-				if (buffer_matrix[i] < 1023)
+				if (buffer_matrix[i] < 1024)
 				{
 					buffer_matrix[i]++;
 					current_items++;
@@ -118,6 +119,8 @@ void producer(void *t)
 					break;
 				}
 			}
+			if (current_items % 1000 == 0)
+				print_buffer_status();
 			if (all_full)
 			{
 				sem_post(&mutex);
@@ -127,6 +130,10 @@ void producer(void *t)
 				sem_post(&full);
 				sem_post(&mutex);
 			}
+		}
+		else
+		{
+			printf("consumer thread %d is yeilding\n", (int) t);
 		}
 	}
 }
@@ -167,5 +174,14 @@ void consumer(void *t)
 				sem_post(&full);
 			}
 		}
+	}
+}
+
+void print_buffer_status()
+{
+	int i;
+	for (i = 0; i < shared_buffers; i++)
+	{
+		printf("buffer %d: %d items\n", i, buffer_matrix[i]);
 	}
 }
