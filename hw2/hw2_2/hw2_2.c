@@ -49,10 +49,10 @@ void producer() {
 
 int main()
 {
-  full = sem_open(FULL_SEM, O_CREAT, 0644, 0); //tell how full the buffer is
-  empty = sem_open(EMPTY_SEM, O_CREAT, 0644, N); //tell how empty the buffer is
-  mutex = sem_open(MUTEX_SEM, O_CREAT, 0644, 1); // control access to critical region
-  int segment_id;    //ID to Shared Memory Segment
+  full = sem_open(FULL_SEM, O_CREAT, 0644, 0); 
+  empty = sem_open(EMPTY_SEM, O_CREAT, 0644, N); 
+  mutex = sem_open(MUTEX_SEM, O_CREAT, 0644, 1); 
+  int segment_id;  
 
     //ALLOCATE SHARED MEMORY SEGMENT
   segment_id = shmget(IPC_PRIVATE, 100 * sizeof(int), IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
