@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <semaphore.h>
 #include <pthread.h>
 
@@ -131,7 +130,7 @@ void consumer(void *t)
             {
                 printf("consumer thread %d is yeilding\n", (int) t);
                 pthread_cond_wait(&buffer_empty_cond, &buffer_mutex);
-                pthread_yield(NULL);
+                //pthread_yield(NULL);
                 i = -1;
             }
         }
