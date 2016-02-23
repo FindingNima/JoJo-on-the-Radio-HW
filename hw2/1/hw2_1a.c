@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <semaphore.h>
 #include <pthread.h>
-
+ 
 #define TRUE 1
 #define FALSE 0
 
@@ -194,4 +194,4 @@ void print_buffer_status()
 	{
 		printf("buffer %d: %d items\n", i, buffer_matrix[i]);
 	}
-}
+} 
